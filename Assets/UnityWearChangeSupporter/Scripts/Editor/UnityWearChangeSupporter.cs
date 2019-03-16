@@ -1,4 +1,4 @@
-﻿/**
+/**
 [UnityWearChangeSupporter]
 Copyright (c) 2019 twitter: @izm
 This software is released under the MIT License.
@@ -19,10 +19,10 @@ namespace VRChatUtilIzm
     /// </summary>
     public class UnityWearChangeSupporter : EditorWindow
     {
-        public const string Version = "0.0.1";
+        public const string Version = "0.0.2";
 
         private static UnityWearChangeSupporter window;
-      
+
         [SerializeField] static Animator character;
         [SerializeField] static Animator cloth;
 
@@ -122,8 +122,13 @@ namespace VRChatUtilIzm
             }
 
 
-            var filter = "co " + cloth.name;
+            var filter = cloth.name;
             var findedGuids = AssetDatabase.FindAssets(filter, null);
+            if (findedGuids == null || findedGuids.Length == 0)
+            {
+                Debug.Log("なんもなかった " + cloth.name);
+            }
+
             foreach (var VARIABLE in findedGuids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(VARIABLE);
@@ -138,6 +143,10 @@ namespace VRChatUtilIzm
                         clothModel = tt;
                         Repaint();
                     }
+                }
+                else
+                {
+                    Debug.Log("さてはprefab無いな！！！：" + path);
                 }
             }
         }
@@ -378,8 +387,8 @@ namespace VRChatUtilIzm
                 wordWrap = true,
                 richText = true
             };
-            
-            EditorGUILayout.LabelField(showmessage,centerbold);
+
+            EditorGUILayout.LabelField(showmessage, centerbold);
             //if (GUILayout.Button("OK"))
             {
             }
