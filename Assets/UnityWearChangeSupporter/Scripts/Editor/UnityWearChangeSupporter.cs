@@ -333,6 +333,11 @@ namespace VRChatUtilIzm
 
             cloth.transform.SetParent(character.transform);
 
+#if UNITY_2018_3_OR_NEWER
+            PrefabUtility.UnpackPrefabInstance(cloth.gameObject, PrefabUnpackMode.OutermostRoot,
+                InteractionMode.AutomatedAction);
+#endif
+
             foreach (var VARIABLE in clothHumanBoneDictionary)
             {
                 Transform willParent = character.GetBoneTransform(VARIABLE.Key);
