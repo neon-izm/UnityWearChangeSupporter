@@ -100,6 +100,20 @@ namespace VRChatUtilIzm
                         PopupWindow.Show(mouseRect, content);
                         return;
                     }
+                    else
+                    {
+                        // クリックした位置を視点とするRectを作る
+                        // 本来のポップアップの用途として使う場合はボタンのRectを渡す
+                        var mouseRect = new Rect(Event.current.mousePosition, Vector2.one);
+
+                        // PopupWindowContentを生成
+                        var content = new PopupContentMessage();
+
+                        content.SetMessage("エラーが発生しています。コンソールを確認してください。");
+                        // 開く
+                        PopupWindow.Show(mouseRect, content);
+                        return;
+                    }
                 }
             }
         }
@@ -218,43 +232,52 @@ namespace VRChatUtilIzm
             return HumanBodyBones.LastBone;
         }
 
-        public static bool GetHumanDescription(GameObject target, ref HumanDescription des)
+        public static ModelImporter GetModelImporter(GameObject target)
         {
-            if (target != null)
-            {
-                AssetImporter importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
-                if (importer != null)
-                {
-                    Debug.Log("AssetImporter Type: " + importer.GetType());
-                    ModelImporter modelImporter = importer as ModelImporter;
-                    if (modelImporter != null)
-                    {
-                        des = modelImporter.humanDescription;
-                        Debug.Log("## Cool stuff data by ModelImporter ##");
-                        foreach (var VARIABLE in des.skeleton)
-                        {
-                            //Debug.Log(VARIABLE);
-                        }
-
-                        //Debug.LogError(des.skeleton);
-                        return true;
-                    }
-                    else
-                    {
-                        Debug.LogError("## Please Select Imported Model in Project View not prefab or other things ##");
-                    }
-                }
-                else
-                {
-                    Debug.LogError("importer is null");
-                }
-            }
-            else
+            if (target == null)
             {
                 Debug.LogError("target is null");
+                return null;
             }
 
-            return false;
+            var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(target));
+
+            if (importer == null)
+            {
+                Debug.LogError("importer is null");
+                return null;
+            }
+
+            Debug.Log("AssetImporter Type: " + importer.GetType());
+
+            var modelImporter = importer as ModelImporter;
+            if (modelImporter == null)
+            {
+                Debug.LogError("## Please Select Imported Model in Project View not prefab or other things ##");
+                return null;
+            }
+
+            Debug.Log("Animation Type: " + modelImporter.animationType);
+            return modelImporter;
+        }
+
+        public static bool GetHumanDescription(GameObject target, ref HumanDescription des)
+        {
+            var modelImporter = GetModelImporter(target);
+
+            if (modelImporter == null)
+                return false;
+
+            des = modelImporter.humanDescription;
+            Debug.Log("## Cool stuff data by ModelImporter ##");
+
+            foreach (var VARIABLE in des.skeleton)
+            {
+                //Debug.Log(VARIABLE);
+            }
+
+            //Debug.LogError(des.skeleton);
+            return true;
         }
 
         //Breadth-first search
@@ -293,6 +316,11 @@ namespace VRChatUtilIzm
                 return false;
             }
 
+            if (GetModelImporter(clothModel.gameObject).animationType != ModelImporterAnimationType.Human)
+            {
+                Debug.LogError("服のModelをHumanoidに変更してください！");
+                return false;
+            }
 
             cloth.transform.position = character.transform.position;
             /// ううう、本来はValidなHumanoidだったら、Animatorから生えているGetBoneTransformでなんでもいけるんだけど
@@ -300,6 +328,7 @@ namespace VRChatUtilIzm
             /// めちゃくちゃつれえ…
             HumanDescription dc = new HumanDescription();
             GetHumanDescription(clothModel.gameObject, ref dc);
+
             //なので、この辞書をGetBoneTransformの代わりに使う、つれえ…
             Dictionary<HumanBodyBones, Transform>
                 clothHumanBoneDictionary = new Dictionary<HumanBodyBones, Transform>();
